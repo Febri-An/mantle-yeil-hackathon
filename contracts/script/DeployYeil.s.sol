@@ -2,27 +2,27 @@
 pragma solidity 0.8.30;
 
 import {Script} from "forge-std/Script.sol";
-import {Yeil} from "../src/Yeil.sol";
-import {ProofOfReserveFeed} from "../src/oracles/ProofOfReserveFeed.sol";
+import {Yeil} from "src/Yeil.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
 
 contract DeployYeil is Script {
-    function run() external returns (Yeil, ProofOfReserveFeed) {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        
-        vm.startBroadcast(deployerPrivateKey);
+    function run() external returns (Yeil, HelperConfig) {
+        HelperConfig config = new HelperConfig();
 
-        // Deploy ProofOfReserveFeed first
-        ProofOfReserveFeed proofFeed = new ProofOfReserveFeed(vm.addr(deployerPrivateKey));
-        
-        // Deploy Yeil token
+        (
+            address proofOfReserveFeed,
+            string memory tokenName, 
+            string memory tokenSymbol
+        ) = config.activeNetworkConfig();
+
+        vm.startBroadcast();
         Yeil yeil = new Yeil(
-            address(proofFeed),
-            "Yeil Token",
-            "YL"
+            proofOfReserveFeed,
+            tokenName,
+            tokenSymbol
         );
-
         vm.stopBroadcast();
-
-        return (yeil, proofFeed);
+        
+        return (yeil, config);
     }
 }
