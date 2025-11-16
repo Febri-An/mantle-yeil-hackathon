@@ -8,6 +8,8 @@ pragma solidity 0.8.30;
  * verified on-chain proof of off-chain asset reserves
  */
 interface IProofOfReserveFeed {
-    function latestVerifiedReserves() external view returns (uint256);
-    function lastUpdatedAt() external view returns (uint256);
+    function updateReserves(address account, int256 newReserve) external;
+    function getAddressToAmount(address account) external view returns (int256);
+    function getLatestVerifiedReserves() external view returns (int256);
+    function getLastUpdatedAt() external view returns (uint256);
 }

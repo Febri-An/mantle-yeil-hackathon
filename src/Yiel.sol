@@ -5,47 +5,27 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IProofOfReserveFeed} from "src/interfaces/IProofOfReserveFeed.sol";
 
-contract Yeil is ERC20Votes, Ownable {
-    IProofOfReserveFeed private proofFeed;
+contract Yiel is ERC20Votes, Ownable {
     uint48 private _snapshotId;
 
     event ERC20SnapshotCheckpointed(uint48 snapshotId);
 
     constructor(
-        address _proofFeed,
         string memory tokenName,
         string memory tokenSymbol
-    ) 
+    )
         ERC20(tokenName, tokenSymbol)
         EIP712(tokenName, "1")
         Ownable(msg.sender)
-    {
-        proofFeed = IProofOfReserveFeed(_proofFeed);
+    {}
+
+    function mint(address account, uint256 amount) external onlyOwner {
+        _mint(account, amount);
     }
 
-    function mint(address to, uint256 amount) external onlyOwner {
-        _mint(to, amount);
-    }
-
-    function burn(address from, uint256 amount) external onlyOwner {
-        _burn(from, amount);
-    }
-
-    /**
-     * @dev Check if the token is fully backed by reserves
-     * @return bool True if fully backed, false otherwise
-     */
-    function isFullyBacked() public view returns (bool) {
-        return ERC20(address(this)).totalSupply() <= getVerifiedReserves();
-    }
-
-    /**
-     * @dev Get the latest verified reserve amount from the oracle feed
-     */
-    function getVerifiedReserves() public view returns (uint256) {
-        return proofFeed.latestVerifiedReserves();
+    function burn(address account, uint256 amount) external onlyOwner {
+        _burn(account, amount);
     }
 
     // Override clock to act like snapshotId
@@ -79,7 +59,7 @@ contract Yeil is ERC20Votes, Ownable {
     ) external view returns (uint256) {
         return getPastVotes(account, snapshotId);
     }
-    
+
     /**
      * @dev Get total supply at a specific snapshot ID
      * @param snapshotId Snapshot ID to check total supply at
@@ -88,7 +68,7 @@ contract Yeil is ERC20Votes, Ownable {
         return getPastTotalSupply(snapshotId);
     }
 
-    // Required override from ERC20Votes  
+    // Required override from ERC20Votes
     function _update(
         address from,
         address to,
@@ -107,9 +87,5 @@ contract Yeil is ERC20Votes, Ownable {
 
     function getTokenSymbol() external view returns (string memory) {
         return symbol();
-    }
-
-    function getProofOfReserveAddress() external view returns (address) {
-        return address(proofFeed);
     }
 }
